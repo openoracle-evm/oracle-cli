@@ -1,0 +1,21 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # locally the SDK is linked from ../oracle-sdk; in CI pull it from the same GitHub owner
+      - run: npm pkg set "dependencies.@openoracle/sdk=github:${{ github.repository_owner }}/oracle-sdk"
+      - run: npm install --no-package-lock
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: node dist/bin.js hours --days 2 && node dist/bin.js fee --pool 1 --oracle 1
